@@ -4,13 +4,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.CreationExtras
+import com.example.writers_books.WritersBooksApplication
 import com.example.writers_books.data.Book
 import com.example.writers_books.data.BookDao
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import java.util.Date
 
 data class InsertBookUiState(
@@ -52,6 +50,7 @@ fun Book.toBookUiState(isEnteryValid: Boolean = false): InsertBookUiState = Inse
 )
 
 
+@Suppress("UNCHECKED_CAST")
 class InsertBookViewModel(private val bookDao: BookDao) : ViewModel() {
 
     var insertBookUiState by mutableStateOf(InsertBookUiState())
@@ -73,12 +72,24 @@ class InsertBookViewModel(private val bookDao: BookDao) : ViewModel() {
         }
     }
 
-    fun resetUiState() {
-        insertBookUiState = InsertBookUiState()
-    }
+
 
     fun updateBook(book: Book) {
         insertBookUiState = book.toBookUiState()
+    }
+
+    companion object {
+        val Factory : ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(
+                modelClass: Class<T>,
+                extras: CreationExtras,
+            ) :T {
+                val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
+                return InsertBookViewModel(
+                    (application as WritersBooksApplication).conteiner.bookDao,
+                ) as T
+            }
+        }
     }
 
 

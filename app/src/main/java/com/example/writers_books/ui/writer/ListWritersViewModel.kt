@@ -5,39 +5,39 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.writers_books.WritersBooksApplication
-import com.example.writers_books.data.Book
-import com.example.writers_books.data.BookDao
+import com.example.writers_books.data.Writer
+import com.example.writers_books.data.WriterDao
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
-data class ListBookUiState(
-    val booksList: List<Book> = listOf()
+data class ListWritersUiState(
+    val writersList: List<Writer> = listOf()
 )
 
 
-class ListBookViewModel(bookDao: BookDao): ViewModel() {
+@Suppress("UNCHECKED_CAST")
+class ListWritersViewModel(writerDao: WriterDao): ViewModel() {
 
-    val uiState: StateFlow<ListBookUiState> =
-        bookDao.getAllBooks().map { books ->
-            ListBookUiState(books)
+    val uiState: StateFlow<ListWritersUiState> =
+        writerDao.getAllWriters().map { writers ->
+            ListWritersUiState(writers)
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(),
-            initialValue = ListBookUiState()
+            initialValue = ListWritersUiState()
         )
 
     companion object {
         val Factory : ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(
                 modelClass: Class<T>,
                 extras: CreationExtras,
             ) :T {
                 val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
-                return ListBookViewModel(
-                    (application as WritersBooksApplication).conteiner.bookDao,
+                return ListWritersViewModel(
+                    (application as WritersBooksApplication).conteiner.writerDao,
                 ) as T
             }
         }

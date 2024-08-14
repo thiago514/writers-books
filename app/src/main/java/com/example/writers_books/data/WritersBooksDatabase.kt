@@ -25,7 +25,6 @@ abstract class WritersBooksDatabase: RoomDatabase() {
                     "app_database"
                 )
                     .fallbackToDestructiveMigration()
-                    .addTypeConverter(DateConverter())
                     .build()
                     .also { INSTANCE = it }
 

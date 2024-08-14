@@ -2,5 +2,7 @@
     <string name="app_name">writers-books</string>
     <string name="books_title">Books</string>
     <string name="insert_book">Insert Book</string>
+    <string name="insert_writer">Insert Writer</string>
+    <string name="writers_title">Writers</string>
     <string name="back_button">Back</string>
 </resources>

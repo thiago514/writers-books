@@ -3,9 +3,7 @@ package com.example.writers_books.ui.book
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
 import androidx.compose.foundation.lazy.items
@@ -16,45 +14,43 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.writers_books.R
 import com.example.writers_books.WritersBooksTopAppBar
-import com.example.writers_books.data.Book
-import com.example.writers_books.ui.AppViewModelProvider
+import com.example.writers_books.data.Writer
 import com.example.writers_books.ui.navigation.NavigationDestination
 
-object ListBooksDestination: NavigationDestination {
-    override val route: String = "Livros"
-    override val titleRes: Int = R.string.books_title
+object ListWritersDestination: NavigationDestination {
+    override val route: String = "Autores"
+    override val titleRes: Int = R.string.writers_title
 }
 
 
 @Composable
-fun ListBooksScreen(
+fun ListWritersScreen(
     navigateBack: () -> Unit,
+    navigateToInsertWriter: () -> Unit,
     modifier: Modifier = Modifier,
-    listBookViewModel: ListBookViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: ListWritersViewModel = viewModel(factory = ListWritersViewModel.Factory)
 ) {
-    val uiState by listBookViewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
 
     Scaffold(
         modifier = modifier,
         topBar = {
             WritersBooksTopAppBar(
-                title = "Livros",
+                title = "Autores",
                 canNavigateBack = true,
                 navigateUp = navigateBack
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { /*TODO*/ }) {
+            FloatingActionButton(onClick = { navigateToInsertWriter() }) {
                 Text(text = "+", style = MaterialTheme.typography.titleMedium, fontSize = 24.sp)
-
             }
         }
     ) { innerPadding ->
@@ -64,9 +60,9 @@ fun ListBooksScreen(
                 .padding(innerPadding),
             verticalArrangement = Arrangement.Center,
         ) {
-            items(items = uiState.booksList, key = { it.id }) { book ->
-                cardBook(
-                    book = book,
+            items(items = uiState.writersList, key = { it.id }) { writer ->
+                WriterBook(
+                    writer = writer,
                     onClick = { /*TODO*/ }
                 )
             }
@@ -79,25 +75,23 @@ fun ListBooksScreen(
 
 
 @Composable
-fun cardBook(
+fun WriterBook(
     modifier: Modifier = Modifier,
-    book: Book,
+    writer: Writer,
     onClick: () -> Unit
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .height(300.dp)
             .padding(16.dp),
         onClick = onClick
     ) {
         Text(
-            text = book.title,
+            text = writer.name,
             style = MaterialTheme.typography.titleMedium,
             modifier = modifier
                 .fillMaxSize()
-                .padding(bottom = 50.dp)
-                .wrapContentSize(Alignment.Center),
+                .padding(16.dp),
             fontSize = 24.sp
         )
     }
