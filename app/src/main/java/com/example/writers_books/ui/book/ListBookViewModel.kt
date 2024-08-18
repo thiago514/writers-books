@@ -30,12 +30,12 @@ class ListBookViewModel(bookDao: BookDao): ViewModel() {
 
     companion object {
         val Factory : ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(
                 modelClass: Class<T>,
                 extras: CreationExtras,
             ) :T {
                 val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
+                @Suppress("UNCHECKED_CAST")
                 return ListBookViewModel(
                     (application as WritersBooksApplication).conteiner.bookDao,
                 ) as T

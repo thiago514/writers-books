@@ -1,4 +1,4 @@
-package com.example.writers_books.ui.book
+package com.example.writers_books.ui.writer
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -26,28 +26,28 @@ import com.example.writers_books.ui.navigation.NavigationDestination
 import com.example.writers_books.ui.theme.componentes.convertMillisToDate
 import kotlinx.coroutines.launch
 
-object ViewBookDestination: NavigationDestination {
-    override val route: String = "detailLivro"
-    override val titleRes: Int = R.string.book
-    const val bookIdArg = "bookId"
-    val routeWithArgs = "$route/{$bookIdArg}"
+object ViewWriterDestination: NavigationDestination {
+    override val route: String = "detailWriter"
+    override val titleRes: Int = R.string.writer
+    const val writerIdArg = "writerId"
+    val routeWithArgs = "$route/{$writerIdArg}"
 }
 
 
 @Composable
-fun ViewBookScreen(
+fun ViewWriterScreen(
     navigateBack: () -> Unit,
-    navigateToEditBook: (Int) -> Unit,
+    navigateToEditWriter: (Int) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: ViewBookViewModel = viewModel(factory = ViewBookViewModel.Factory)
+    viewModel: ViewWriterViewModel = viewModel(factory = ViewWriterViewModel.Factory)
 ) {
-    val bookDetail = viewModel.viewBookUiState.collectAsState().value.bookDetail
+    val writerDetail = viewModel.viewWriterUiState.collectAsState().value.writerDetail
     val coroutineScope = rememberCoroutineScope()
     Scaffold(
         modifier = modifier,
         topBar = {
             WritersBooksTopAppBar(
-                title = "Livro",
+                title = "Autor",
                 canNavigateBack = true,
                 navigateUp = navigateBack
             )
@@ -58,44 +58,36 @@ fun ViewBookScreen(
             .verticalScroll(rememberScrollState())
             .fillMaxWidth()) {
 
-            Text(text = "TITLE", style = MaterialTheme.typography.bodyMedium, modifier = modifier.padding(8.dp))
-            Text(text = bookDetail.book.title, style = MaterialTheme.typography.titleMedium, modifier = modifier.padding(8.dp))
+            Text(text = "NOME", style = MaterialTheme.typography.bodyMedium, modifier = modifier.padding(8.dp))
+            Text(text = writerDetail.writer.name, style = MaterialTheme.typography.titleMedium, modifier = modifier.padding(8.dp))
             HorizontalDivider(
                 modifier = modifier
                     .fillMaxWidth()
                     .padding(8.dp)
             )
-            Text(text = "ISBN", style = MaterialTheme.typography.bodyMedium, modifier = modifier.padding(8.dp))
-            Text(text = bookDetail.book.isbn, style = MaterialTheme.typography.bodyMedium, modifier = modifier.padding(8.dp))
+            Text(text = "GENERO", style = MaterialTheme.typography.bodyMedium, modifier = modifier.padding(8.dp))
+            Text(text = writerDetail.writer.gender, style = MaterialTheme.typography.bodyMedium, modifier = modifier.padding(8.dp))
             HorizontalDivider(
                 modifier = modifier
                     .fillMaxWidth()
                     .padding(8.dp)
             )
-            Text(text = "DATA DE LANÇAMENTO", style = MaterialTheme.typography.bodyMedium, modifier = modifier.padding(8.dp))
-            Text(text = convertMillisToDate(bookDetail.book.relaseDate.time), style = MaterialTheme.typography.bodyMedium, modifier = modifier.padding(8.dp))
+            Text(text = "DATA DE NASCIMENTO", style = MaterialTheme.typography.bodyMedium, modifier = modifier.padding(8.dp))
+            Text(text = convertMillisToDate(writerDetail.writer.bornDate.time), style = MaterialTheme.typography.bodyMedium, modifier = modifier.padding(8.dp))
             HorizontalDivider(
                 modifier = modifier
                     .fillMaxWidth()
                     .padding(8.dp)
             )
-            Text(text = "NÚMERO DE PÁGINAS", style = MaterialTheme.typography.bodyMedium, modifier = modifier.padding(8.dp))
-            Text(text = bookDetail.book.numPages.toString(), style = MaterialTheme.typography.bodyMedium, modifier = modifier.padding(8.dp))
-
-            HorizontalDivider(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-            )
-            Text(text = "ESCRITORES", style = MaterialTheme.typography.bodyMedium, modifier = modifier.padding(8.dp))
+            Text(text = "LIVROS", style = MaterialTheme.typography.bodyMedium, modifier = modifier.padding(8.dp))
             LazyColumn(
                 modifier = modifier
                     .fillMaxWidth()
                     .height(200.dp),
             ) {
-                items(bookDetail.writers, key = { it.id }) { writer ->
+                items(writerDetail.books, key = { it.id }) { book ->
                     Text(
-                        text = writer.name,
+                        text = book.title,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = modifier.padding(8.dp)
                     )
@@ -103,7 +95,7 @@ fun ViewBookScreen(
             }
             Spacer(modifier = modifier.height(16.dp))
             Button(onClick = {
-                navigateToEditBook(bookDetail.book.id)
+                navigateToEditWriter(writerDetail.writer.id)
             },
                 shape = MaterialTheme.shapes.medium,
                 modifier = modifier
@@ -114,7 +106,7 @@ fun ViewBookScreen(
             Spacer(modifier = modifier.height(16.dp))
             Button(onClick = {
                 coroutineScope.launch {
-                    viewModel.deleteBook(navigateBack)
+                    viewModel.deleteWriter(navigateBack)
                 }
             },
                 shape = MaterialTheme.shapes.medium,

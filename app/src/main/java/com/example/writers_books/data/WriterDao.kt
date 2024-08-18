@@ -17,6 +17,9 @@ interface WriterDao {
     @Query("SELECT * FROM WRITERS WHERE id = :id")
     fun getWriterWithBooks(id: Int): Flow<List<WriterWithBooks>>
 
+    @Query("Select * from writers where name = :name")
+    fun getWriterByName(name: String): Flow<Writer>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWriter(writer: Writer)
 

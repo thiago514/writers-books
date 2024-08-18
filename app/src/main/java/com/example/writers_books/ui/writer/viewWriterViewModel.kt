@@ -1,4 +1,4 @@
-package com.example.writers_books.ui.book
+package com.example.writers_books.ui.writer
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -7,9 +7,9 @@ import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.writers_books.WritersBooksApplication
-import com.example.writers_books.data.Book
-import com.example.writers_books.data.BookDao
-import com.example.writers_books.data.BookWithWriters
+import com.example.writers_books.data.Writer
+import com.example.writers_books.data.WriterDao
+import com.example.writers_books.data.WriterWithBooks
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
@@ -17,33 +17,35 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.util.Date
 
-data class ViewBookUiState(
-    val bookDetail: BookWithWriters = BookWithWriters(Book(0,"","",Date(),0), listOf())
+data class ViewWriterUiState(
+    val writerDetail: WriterWithBooks = WriterWithBooks(Writer(0,"",Date(),""), listOf())
 )
 
-class ViewBookViewModel(
+class ViewWriterViewModel(
     savedStateHandle: SavedStateHandle,
-    private val bookDao: BookDao) : ViewModel() {
+    private val writerDao: WriterDao) : ViewModel() {
 
-    private val bookId: Int = checkNotNull(savedStateHandle[ViewBookDestination.bookIdArg])
+    private val writerId: Int = checkNotNull(savedStateHandle[ViewWriterDestination.writerIdArg])
 
-    var viewBookUiState: StateFlow<ViewBookUiState> =
-        bookDao.getBookWithWriters(bookId)
+    var viewWriterUiState: StateFlow<ViewWriterUiState> =
+        writerDao.getWriterWithBooks(writerId)
             .filterNotNull()
-            .map { bookWithWriters ->
-                if(bookWithWriters.isEmpty()) return@map ViewBookUiState()
-                ViewBookUiState(bookWithWriters.first())
+            .map { writerWithBooks ->
+                if(writerWithBooks.isEmpty()) return@map ViewWriterUiState()
+                ViewWriterUiState(writerWithBooks.first())
             }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000L),
-                initialValue = ViewBookUiState(BookWithWriters(Book(0,"","",Date(),0), listOf()))
+                initialValue = ViewWriterUiState(WriterWithBooks(Writer(0,"",Date(),""), listOf()))
             )
 
-    suspend fun deleteBook(navigateBack: () -> Unit) {
-            bookDao.deleteBook(viewBookUiState.value.bookDetail.book)
+
+    suspend fun deleteWriter(navigateBack: () -> Unit) {
+            writerDao.deleteWriter(viewWriterUiState.value.writerDetail.writer)
             navigateBack()
     }
+
 
     companion object {
         val Factory : ViewModelProvider.Factory = object : ViewModelProvider.Factory {
@@ -54,11 +56,11 @@ class ViewBookViewModel(
                 val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
                 val savedStateHandle = extras.createSavedStateHandle()
                 @Suppress("UNCHECKED_CAST")
-                val insertBookViewModel = ViewBookViewModel(
+                val insertBookViewModel = ViewWriterViewModel(
                     savedStateHandle,
-                    (application as WritersBooksApplication).conteiner.bookDao
+                    (application as WritersBooksApplication).conteiner.writerDao
                 ) as T
-                return insertBookViewModel;
+                return insertBookViewModel
             }
         }
     }

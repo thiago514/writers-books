@@ -21,6 +21,10 @@ import com.example.writers_books.ui.book.ViewBookDestination
 import com.example.writers_books.ui.book.ViewBookScreen
 import com.example.writers_books.ui.home.HomeDestination
 import com.example.writers_books.ui.home.HomeScreen
+import com.example.writers_books.ui.writer.EditWriterDestination
+import com.example.writers_books.ui.writer.EditWriterScreen
+import com.example.writers_books.ui.writer.ViewWriterDestination
+import com.example.writers_books.ui.writer.ViewWriterScreen
 
 @Composable
 fun WritersBooksNavHost(
@@ -35,23 +39,39 @@ fun WritersBooksNavHost(
         composable(route = HomeDestination.route) {
             HomeScreen(navigateToItemBooksMenu = { navController.navigate(ListBooksDestination.route) }, navigateToItemWrittersMenu = { navController.navigate(ListWritersDestination.route) })
         }
+
+        // WRITERS
+        composable(route = ListWritersDestination.route) {
+            ListWritersScreen(navigateBack = { navController.popBackStack() },
+                navigateToInsertWriter = { navController.navigate(InsertWriterDestination.route) },
+                navigateToDetailWriter = { navController.navigate("${ViewWriterDestination.route}/${it}") })
+        }
+        composable(route = InsertWriterDestination.route) {
+            InsertWriterScreen(navigateBack = { navController.popBackStack()})
+        }
+        composable(route = ViewWriterDestination.routeWithArgs,
+            arguments = listOf(navArgument(ViewWriterDestination.writerIdArg) {
+                type = NavType.IntType
+            })) {
+            ViewWriterScreen(navigateBack = { navController.popBackStack() },
+                navigateToEditWriter = { navController.navigate("${EditWriterDestination.route}/${it}") })
+        }
+
+        composable(route = EditWriterDestination.routeWithArgs,
+            arguments = listOf(navArgument(EditWriterDestination.writerIdArgEdit) {
+                type = NavType.IntType
+            })) {
+            EditWriterScreen(navigateBack = { navController.popBackStack() })
+        }
+
+        // BOOKS
         composable(route = ListBooksDestination.route) {
             ListBooksScreen(navigateBack = { navController.popBackStack() },
                 navigateToInsertBook = { navController.navigate(InsertBooksDestination.route) },
                 navigateToDetailBook = { navController.navigate("${ViewBookDestination.route}/${it}") })
-            // Add itemBooksMenu here
         }
         composable(route = InsertBooksDestination.route) {
             InsertBooksScreen(navigateBack = { navController.popBackStack()})
-            // Add itemBooksMenu here
-        }
-        composable(route = ListWritersDestination.route) {
-            ListWritersScreen(navigateBack = { navController.popBackStack() },
-                navigateToInsertWriter = { navController.navigate(InsertWriterDestination.route) })
-        }
-        composable(route = InsertWriterDestination.route) {
-            InsertWriterScreen(navigateBack = { navController.popBackStack()})
-            // Add itemBooksMenu here
         }
         composable(route = ViewBookDestination.routeWithArgs,
             arguments = listOf(navArgument(ViewBookDestination.bookIdArg) {
@@ -60,7 +80,6 @@ fun WritersBooksNavHost(
             ViewBookScreen(navigateBack = { navController.popBackStack() },
                 navigateToEditBook = { navController.navigate("${EditBooksDestination.route}/${it}") })
         }
-
         composable(route = EditBooksDestination.routeWithArgs,
             arguments = listOf(navArgument(EditBooksDestination.bookIdArgEdit) {
                 type = NavType.IntType
@@ -68,6 +87,5 @@ fun WritersBooksNavHost(
             EditBooksScreen(navigateBack = { navController.popBackStack() })
         }
 
-        // Add NavGraphs here
     }
 }

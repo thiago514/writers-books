@@ -4,6 +4,7 @@
     <string name="book">Book</string>
     <string name="insert_book">Insert Book</string>
     <string name="edit_book">Edit book</string>
+    <string name="edit_writer">Edit Writer</string>
     <string name="insert_writer">Insert Writer</string>
     <string name="writers_title">Writers</string>
     <string name="writer">Writer</string>

@@ -1,40 +1,33 @@
 package com.example.writers_books.ui.book
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.writers_books.R
 import com.example.writers_books.WritersBooksTopAppBar
 import com.example.writers_books.ui.navigation.NavigationDestination
+import com.example.writers_books.ui.theme.componentes.DateInput
+import com.example.writers_books.ui.theme.componentes.DropMenuGender
+import com.example.writers_books.ui.theme.componentes.WriterBookSelectCard
+import com.example.writers_books.ui.theme.componentes.WriterBookType
 import kotlinx.coroutines.launch
 import java.util.Date
 
@@ -104,6 +97,21 @@ fun InsertWriterScreen(
             if(!viewModel.insertWriterUiState.isEnteryValid) {
                 Text("Por favor, preencha todos os campos", color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center, modifier = modifier.fillMaxWidth())
             }
+            LazyColumn(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .height(500.dp),
+            ) {
+                items(viewModel.insertWriterUiState.bookList, key = { it.book.id }) {
+                    WriterBookSelectCard(
+                        type = WriterBookType.BOOK,
+                        obj = it,
+                        onSelect = {
+                            viewModel.selectBook(it)
+                        },
+                    )
+                }
+            }
             Button(onClick = {
                 coroutineScope.launch {
                     viewModel.saveWriter()
@@ -121,47 +129,4 @@ fun InsertWriterScreen(
     }
 }
 
-@Composable
-fun DropMenuGender(value: String, onValueChange: (string: String) -> Unit, modifier: Modifier = Modifier){
-    var expanded by remember { mutableStateOf(false) }
-    Box(modifier = modifier.fillMaxWidth()) {
-        OutlinedTextField(
-            value = value,
-            onValueChange = {  },
-            label = { Text("Genero") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            modifier = Modifier
-                .fillMaxWidth(),
-            readOnly = true,
-            trailingIcon = {
-                IconButton(
-                    onClick = { expanded = !expanded },
-                    modifier = Modifier.align(Alignment.CenterEnd)
-                ) {
-                    Icon(Icons.Default.ArrowDropDown, contentDescription = "Genero")
-                }
-            })
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            DropdownMenuItem(
-                text = { Text("Masculino") },
-                onClick = { onValueChange("Masculino")
-                expanded = false
-                }
-            )
-            DropdownMenuItem(
-                text = { Text("Feminino") },
-                onClick = { onValueChange("Feminino")
-                    expanded = false}
-            )
-            DropdownMenuItem(
-                text = { Text("Outros") },
-                onClick = { onValueChange("Outros")
-                    expanded = false}
-            )
-        }
-    }
-}
 
