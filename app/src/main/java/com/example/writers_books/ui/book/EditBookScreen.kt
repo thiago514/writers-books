@@ -73,23 +73,25 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-object InsertBooksDestination: NavigationDestination {
-    override val route: String = "Inserir Livros"
-    override val titleRes: Int = R.string.insert_book
+object EditBooksDestination: NavigationDestination {
+    override val route: String = "Editar Livros"
+    override val titleRes: Int = R.string.edit_book
+    const val bookIdArgEdit = "bookIdEdit"
+    val routeWithArgs = "${EditBooksDestination.route}/{$bookIdArgEdit}"
 }
 
 
 @Composable
-fun InsertBooksScreen(
+fun EditBooksScreen(
     navigateBack: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: InsertBookViewModel = viewModel(factory = InsertBookViewModel.Factory)
+    viewModel: EditBookViewModel = viewModel(factory = EditBookViewModel.Factory)
 ) {
     Scaffold(
         modifier = modifier,
         topBar = {
             WritersBooksTopAppBar(
-                title = "Livros",
+                title = "Editar Livros",
                 canNavigateBack = true,
                 navigateUp = navigateBack
             )
@@ -133,7 +135,7 @@ fun InsertBooksScreen(
                     .fillMaxWidth()
                     .padding(8.dp)
             )
-            DateInput(onChange = { viewModel.updateUiState((bookDetail.copy(relaseDate = Date(it+1000000))))}, label = "Data de Lançamento", modifier = modifier.padding(8.dp))
+            DateInput(onChange = { viewModel.updateUiState((bookDetail.copy(relaseDate = Date(it+1000000))))}, label = "Data de Lançamento", modifier = modifier.padding(8.dp), initValue = bookDetail.relaseDate.time)
 //            OutlinedTextField(
 //                value = bookDetail.relaseDate.toString(),
 //                onValueChange = {
@@ -177,7 +179,10 @@ fun InsertBooksScreen(
                     WriterCard(
                         writer = it,
                         onSelect = {
-                            viewModel.selectWriter(it)
+                            coroutineScope.launch {
+                                viewModel.selectWriter(it)
+
+                            }
                         },
                     )
                 }
@@ -197,127 +202,4 @@ fun InsertBooksScreen(
 
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DateInput(onChange: (Long) -> Unit, label: String, modifier: Modifier = Modifier, initValue: Long? = null) {
-    var showDatePicker by remember { mutableStateOf(false) }
-    val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initValue)
-    val selectedDate = datePickerState.selectedDateMillis?.let {
-        onChange(it)
-        convertMillisToDate(it)
-    } ?: ""
-
-    Column(
-        modifier = modifier.fillMaxWidth()
-    ) {
-        if (showDatePicker) {
-            Popup(
-                onDismissRequest = { showDatePicker = false },
-                alignment = Alignment.TopStart
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .offset(y = 64.dp)
-                        .shadow(elevation = 4.dp)
-                        .background(MaterialTheme.colorScheme.surface)
-                        .padding(16.dp)
-                ) {
-                    DatePicker(
-                        state = datePickerState,
-
-                        showModeToggle = true
-                    )
-                }
-            }
-        }
-        OutlinedTextField(
-            value = selectedDate,
-            onValueChange = { },
-            label = { Text(label) },
-            readOnly = true,
-            trailingIcon = {
-                IconButton(onClick = { showDatePicker = !showDatePicker }) {
-                    Icon(
-                        imageVector = Icons.Default.DateRange,
-                        contentDescription = "Select date"
-                    )
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(64.dp)
-        )
-
-
-    }
-}
-
-
-
-fun convertMillisToDate(millis: Long): String {
-    val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-    return formatter.format(Date(millis))
-}
-
-
-@Composable
-fun WriterCard(
-    writer: WriterSelect,
-    onSelect: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-        Column(modifier = modifier) {
-            Row(
-                modifier = modifier
-                    .padding(2.dp)
-                    .fillMaxWidth()
-
-
-            ) {
-                Column(
-                    modifier = Modifier
-                        .padding(8.dp)
-                ) {
-                    IconButton(
-                        onClick = { onSelect() }, modifier = modifier
-                            .border(2.dp, Color.Black)
-                            .padding(bottom = 7.dp)
-                    ) {
-                        if (writer.isSelected) {
-                            Icon(
-                                Icons.Filled.Check,
-                                contentDescription = "Check",
-                                modifier = modifier.size(50.dp),
-                            )
-                        }
-
-                    }
-                }
-                    Text(
-                        text = writer.writer.name,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(top = 25.dp, start = 8.dp)
-                    )
-            }
-            Spacer(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .border(3.dp, color = Color.Black)
-                    .height(3.dp)
-            )
-        }
-
-}
-
-@Preview
-@Composable
-fun previewCardWriter() {
-    WriterCard(
-        writer = WriterSelect(Writer(1, "J.K. Rowling", Date(), "MALE"), false),
-        onSelect = {}
-    )
 }

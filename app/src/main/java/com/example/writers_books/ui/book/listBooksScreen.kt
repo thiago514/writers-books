@@ -33,6 +33,7 @@ object ListBooksDestination: NavigationDestination {
 fun ListBooksScreen(
     navigateBack: () -> Unit,
     navigateToInsertBook: () -> Unit,
+    navigateToDetailBook: (Int) -> Unit,
     modifier: Modifier = Modifier,
     listBookViewModel: ListBookViewModel = viewModel(factory = ListBookViewModel.Factory)
 ) {
@@ -64,7 +65,7 @@ fun ListBooksScreen(
             items(items = uiState.booksList, key = { it.id }) { book ->
                 CardBook(
                     book = book,
-                    onClick = { /*TODO*/ }
+                    onClick = { navigateToDetailBook(book.id) }
                 )
             }
 

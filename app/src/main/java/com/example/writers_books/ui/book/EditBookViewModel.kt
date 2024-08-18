@@ -6,8 +6,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.writers_books.WritersBooksApplication
@@ -16,6 +18,7 @@ import com.example.writers_books.data.BookDao
 import com.example.writers_books.data.Writer
 import com.example.writers_books.data.WriterBookDao
 import com.example.writers_books.data.WriterDao
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -28,68 +31,34 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import java.util.Date
 
-data class InsertBookUiState(
+data class EditBookUiState(
     val bookDetail: BookDetail = BookDetail(),
     val writerList: List<WriterSelect> = listOf(),
     val isEnteryValid: Boolean = false
 )
 
-data class ListWriters (
-    val writer: List<WriterSelect> = listOf()
-)
-
-data class BookDetail(
-    val id: Int = 0,
-    val title: String = "",
-    val isbn: String = "",
-    val relaseDate: Date = Date(),
-    val numPages: Int = 0,
-)
-
-fun BookDetail.toBook(): Book {
-    return Book(
-        id = id,
-        title = title,
-        isbn = isbn,
-        relaseDate = relaseDate,
-        numPages = numPages
-    )
-}
-
-fun Book.toBookDetail(): BookDetail {
-    return BookDetail(
-        id = id,
-        title = title,
-        isbn = isbn,
-        relaseDate = relaseDate,
-        numPages = numPages
-    )
-}
-
-fun Book.toBookUiState(isEnteryValid: Boolean = false): InsertBookUiState = InsertBookUiState(
-    bookDetail = this.toBookDetail(),
-    isEnteryValid = isEnteryValid
-)
-
-data class WriterSelect(
-    val writer: Writer,
-    var isSelected: Boolean
-)
-
 @Suppress("UNCHECKED_CAST")
-class InsertBookViewModel(private val bookDao: BookDao,
+class EditBookViewModel(private val bookDao: BookDao,
     private val writerDao: WriterDao,
-    private val writerBookDao: WriterBookDao) : ViewModel() {
+    private val writerBookDao: WriterBookDao,
+    savedStateHandle: SavedStateHandle) : ViewModel() {
 
     var insertBookUiState by mutableStateOf(InsertBookUiState())
         private set
 
+    private val bookId: Int = checkNotNull(savedStateHandle[EditBooksDestination.bookIdArgEdit])
+
     init {
         viewModelScope.launch {
-            writerDao.getAllWriters().collect {
-                insertBookUiState = insertBookUiState.copy(writerList = it.map { writer ->
-                    WriterSelect(writer, false)
-                })
+            writerDao.getAllWriters().collect { writters ->
+                bookDao.getBookWithWriters(bookId).collect { bookWithWriters ->
+                    val bookDetail = bookWithWriters.first().book
+                    insertBookUiState = insertBookUiState.copy(
+                        bookDetail = bookDetail.toBookDetail(),
+                        writerList = writters.map { writer ->
+                            WriterSelect(writer, bookWithWriters.first().writers.contains(writer))
+                        })
+                }
             }
         }
 
@@ -97,11 +66,18 @@ class InsertBookViewModel(private val bookDao: BookDao,
 
 
 
-    fun selectWriter(writer: WriterSelect) {
+    suspend fun selectWriter(writer: WriterSelect) {
         println("selectWriter")
         insertBookUiState = insertBookUiState.copy(writerList = insertBookUiState.writerList.map { writerSelect ->
             if (writerSelect == writer) {
-                writerSelect.copy(isSelected = !writerSelect.isSelected)
+                val writerAlterado = writerSelect.copy(isSelected = !writerSelect.isSelected)
+                if (writerAlterado.isSelected) {
+                    writerBookDao.insertWriterBook(com.example.writers_books.data.WriterBook(writerAlterado.writer.id, bookId))
+                    writerAlterado
+                } else {
+                    writerBookDao.deleteWriterBook(writerAlterado.writer.id, bookId)
+                    writerAlterado
+                }
             } else {
                 writerSelect
             }
@@ -115,10 +91,7 @@ class InsertBookViewModel(private val bookDao: BookDao,
 
     suspend fun saveBook() {
         if (validateInput()) {
-            bookDao.insertBook(insertBookUiState.bookDetail.toBook())
-            val bookId = bookDao.getBookByTitle(insertBookUiState.bookDetail.title).first().id
-            val selectedWriters = insertBookUiState.writerList.filter { it.isSelected }.map { it.writer }
-            writerBookDao.insertMultipleWritersForOneBook(selectedWriters, bookId)
+            bookDao.updateBook(insertBookUiState.bookDetail.toBook())
 
         }
     }
@@ -129,20 +102,7 @@ class InsertBookViewModel(private val bookDao: BookDao,
         }
     }
 
-    fun toggleWriter(writer: WriterSelect) {
-        insertBookUiState = insertBookUiState.copy(writerList = insertBookUiState.writerList.map { writerSelect ->
-            if (writerSelect == writer) {
-                writerSelect.copy(isSelected = !writerSelect.isSelected)
-            } else {
-                writerSelect
-            }
-        })
-    }
 
-
-    fun updateBook(book: Book) {
-        insertBookUiState = book.toBookUiState()
-    }
 
     companion object {
         val Factory : ViewModelProvider.Factory = object : ViewModelProvider.Factory {
@@ -151,12 +111,14 @@ class InsertBookViewModel(private val bookDao: BookDao,
                 extras: CreationExtras,
             ) :T {
                 val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
-                val insertBookViewModel = InsertBookViewModel(
+                val savedStateHandle = extras.createSavedStateHandle()
+                val editBookViewModel = EditBookViewModel(
                     (application as WritersBooksApplication).conteiner.bookDao,
                     (application as WritersBooksApplication).conteiner.writerDao,
-                    (application as WritersBooksApplication).conteiner.writerBookDao
+                    (application as WritersBooksApplication).conteiner.writerBookDao,
+                    savedStateHandle
                 ) as T
-                return insertBookViewModel;
+                return editBookViewModel;
             }
         }
     }
